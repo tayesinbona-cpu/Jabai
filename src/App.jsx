@@ -12,26 +12,13 @@ import {
   Image as ImageIcon, FileText, Video, Paperclip, Trash
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { clsx, type ClassValue } from 'clsx';
+import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Utility for tailwind classes
-function cn(...inputs: ClassValue[]) {
+function cn(...inputs) {
   return twMerge(clsx(inputs));
-}
-
-interface Message {
-  role: 'user' | 'bot';
-  content: string;
-  timestamp: string;
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  messages: Message[];
-  updatedAt: string;
 }
 
 const STORAGE_KEY = 'jabai_conversations_v4';
@@ -44,22 +31,22 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function App() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState([]);
+  const [activeId, setActiveId] = useState(null);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState('light');
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<{ data: string; mimeType: string; name: string } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,7 +61,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('jabai_theme') as 'light' | 'dark';
+    const savedTheme = localStorage.getItem('jabai_theme');
     if (savedTheme) {
       setTheme(savedTheme);
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -111,7 +98,7 @@ export default function App() {
   };
 
   const clearHistory = () => {
-    const newChat: Conversation = {
+    const newChat = {
       id: Date.now().toString(),
       title: 'Haasawa Haaraa',
       messages: [],
@@ -124,7 +111,7 @@ export default function App() {
     setIsClearConfirmOpen(false);
   };
 
-  const toggleTheme = (newTheme: 'light' | 'dark') => {
+  const toggleTheme = (newTheme) => {
     setTheme(newTheme);
     localStorage.setItem('jabai_theme', newTheme);
   };
@@ -163,7 +150,7 @@ export default function App() {
       return;
     }
 
-    const newChat: Conversation = {
+    const newChat = {
       id: Date.now().toString(),
       title: 'Haasawa Haaraa',
       messages: [],
@@ -174,7 +161,7 @@ export default function App() {
     setIsSidebarOpen(false);
   };
 
-  const deleteConversation = (id: string, e: React.MouseEvent) => {
+  const deleteConversation = (id, e) => {
     e.stopPropagation();
     const updated = conversations.filter(c => c.id !== id);
     setConversations(updated);
@@ -195,13 +182,13 @@ export default function App() {
     scrollToBottom();
   }, [activeChat?.messages, isLoading]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const base64 = (event.target?.result as string).split(',')[1];
+      const base64 = (event.target?.result).split(',')[1];
       setSelectedFile({
         data: base64,
         mimeType: file.type,
@@ -211,12 +198,12 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
-  const handleSend = async (textOverride?: string) => {
+  const handleSend = async (textOverride) => {
     const messageText = textOverride || input;
     if (!messageText.trim() && !selectedFile) return;
     if (isLoading || !activeId) return;
 
-    const userMessage: Message = {
+    const userMessage = {
       role: 'user',
       content: messageText + (selectedFile ? `\n\n[Fayila: ${selectedFile.name}]` : ''),
       timestamp: new Date().toISOString(),
@@ -270,7 +257,7 @@ export default function App() {
       const data = await response.json();
       const responseText = data.text;
 
-      const botMessage: Message = {
+      const botMessage = {
         role: 'bot',
         content: responseText,
         timestamp: new Date().toISOString(),
@@ -286,12 +273,12 @@ export default function App() {
         }
         return c;
       }));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error calling Gemini:", error);
       let errorMessageContent = "Dhiifama, rakkoon uumameera.";
       if (error?.message?.includes('429')) errorMessageContent = "Dhiifama, Jabai yeroo ammaa baay'ee hojii qaba.";
       
-      const errorMessage: Message = {
+      const errorMessage = {
         role: 'bot',
         content: errorMessageContent,
         timestamp: new Date().toISOString(),
@@ -306,7 +293,7 @@ export default function App() {
     }
   };
 
-  const copyToClipboard = (text: string, idx: number) => {
+  const copyToClipboard = (text, idx) => {
     navigator.clipboard.writeText(text);
     setCopiedId(idx);
     setTimeout(() => setCopiedId(null), 2000);

@@ -44,10 +44,10 @@ Tone: Friendly, helpful, professional, polite.`;
   app.post("/api/chat", async (req, res) => {
     try {
       const { messageText, history, fileToUpload } = req.body;
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
 
-      if (!apiKey) {
-        return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server." });
+      if (!apiKey || apiKey === "TODO_KEYHERE") {
+        return res.status(500).json({ error: "GEMINI_API_KEY is not configured on the server. Please check your environment variables." });
       }
 
       const ai = new GoogleGenAI({ apiKey });
@@ -78,7 +78,7 @@ Tone: Friendly, helpful, professional, polite.`;
       const result = await model;
       const responseText = result.text || "Dhiifama, deebii kennuu hin dandeenye.";
       res.json({ text: responseText });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Gemini API Error:", error);
       res.status(500).json({ error: error.message || "Internal Server Error" });
     }
